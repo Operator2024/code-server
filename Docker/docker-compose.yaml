@@ -1,0 +1,55 @@
+---
+version: "3.0"
+services:
+  code-server:
+    image: lscr.io/linuxserver/code-server:latest
+    container_name: code-server
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=Etc/UTC
+      #- PASSWORD=password #optional
+      # change password via hasher.py or https://coder.com/docs/code-server/FAQ#can-i-store-my-password-hashed
+      #- HASHED_PASSWORD=
+      #- SUDO_PASSWORD= #optional
+      #- SUDO_PASSWORD_HASH= #optional
+      #- PROXY_DOMAIN=code-server.operator2018.ru #optional
+      - DEFAULT_WORKSPACE=/config/workspace #optional
+    volumes:
+      - root_config:/config
+    networks:
+      local-network:
+        ipv4_address: 172.16.239.5
+    ports:
+      - ${PORT}:8443/tcp
+      - 3000:3000/tcp
+    restart: unless-stopped
+  web:
+    build:
+      args:
+        version: ${IMAGE_VERSION}
+        context: .
+    image: custom-nginx:${IMAGE_VERSION}
+    container_name: custom-nginx
+    networks:
+      local-network:
+        ipv4_address: 172.16.239.6
+    ports:
+    - "8080:80"
+    # environment:
+    # - NGINX_HOST=foobar.com
+    # - NGINX_PORT=80
+
+networks:
+  local-network:
+    ipam:
+      driver: default
+      config:
+        - subnet: "172.16.239.0/24"
+          # - subnet: "2001:3984:3989::/64"
+          gateway: "172.16.239.1"
+
+volumes:
+  root_config:
+    name: code-server
+    external: false
