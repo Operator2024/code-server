@@ -25,20 +25,16 @@ services:
       - 3000:3000/tcp
     restart: unless-stopped
   web:
-    build:
-      args:
-        version: ${IMAGE_VERSION}
-        context: .
-    image: custom-nginx:${IMAGE_VERSION}
-    container_name: custom-nginx
+    image: nginx:1.26.1
     networks:
       local-network:
         ipv4_address: 172.16.239.6
     ports:
-    - "8080:80"
+    - "80:80"
     # environment:
     # - NGINX_HOST=foobar.com
     # - NGINX_PORT=80
+    restart: unless-stopped
 
 networks:
   local-network:
