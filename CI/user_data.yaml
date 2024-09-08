@@ -1,4 +1,5 @@
 #cloud-config
+
 ---
 cloud_config_modules:
   - resolv_conf
@@ -27,7 +28,7 @@ system_info:
     # plain_text_passwd: changepass
     plain_text_passwd: changepass
     sudo: ALL=(ALL) NOPASSWD:ALL
-    groups: [users, admin, docker]
+    groups: [users, docker]
     shell: /bin/bash
     lock_passwd: false
 users:
@@ -40,10 +41,10 @@ users:
 manage_resolv_conf: true
 resolv_conf:
   nameservers:
-    - 8.8.8.8
-    - 8.8.4.4
-    - 1.1.1.1
     - 77.88.8.1
+    - 1.1.1.1
+    - 9.9.9.9
+    - 8.8.4.4
   options:
     rotate: true
     timeout: 1
@@ -55,7 +56,7 @@ write_files:
     permissions: "0644"
     content: |
       [Resolve]
-      DNS=77.88.8.1 9.9.9.9 8.8.4.4
+      DNS=77.88.8.1 1.1.1.1 9.9.9.9 8.8.4.4
   - path: /etc/ssh/sshd_config.d/60-cloud-init-port.conf
     permissions: "0600"
     content: |
@@ -65,7 +66,7 @@ write_files:
       # AllowUsers ubuntu
   - path: /etc/systemd/system/docker-compose.service
     owner: root:root
-    permissions: '0755'
+    permissions: '0600'
     content: |
         [Unit]
         Description=
@@ -75,7 +76,8 @@ write_files:
         [Service]
         Type=oneshot
         RemainAfterExit=yes
-        WorkingDirectory=/home/<INSERT YOUR USERNAME>
+        # REPLACE <ubuntu> to your username
+        WorkingDirectory=/home/ubuntu
         ExecStart=/usr/bin/docker compose --file docker-compose.yaml up --build -d
         ExecStop=/usr/bin/docker compose --file docker-compose.yaml down
         TimeoutStartSec=60
@@ -157,5 +159,7 @@ runcmd:
   - apt-get update
   - apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose docker-compose-plugin
   - update-grub
+  - mkdir /home/ubuntu/app
+  - git clone https://github.com/Operator2024/code-server.git /home/ubuntu/app
 
 final_message: "The system is finally up, after $UPTIME seconds"
