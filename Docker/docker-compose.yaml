@@ -26,6 +26,8 @@ services:
     restart: unless-stopped
   web:
     image: nginx:1.26.1
+    volumes:
+     - 'nginx.conf:/etc/nginx/nginx.conf'
     networks:
       local-network:
         ipv4_address: 172.16.239.6
