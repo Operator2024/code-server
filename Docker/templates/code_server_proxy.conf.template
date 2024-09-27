@@ -6,7 +6,7 @@ http {
     server {
         access_log /var/log/nginx/access.log combined;
         listen       80;
-        server_name $DOMAIN;
+        server_name $NGINX_DOMAIN;
 
         location /natasha/ {
             proxy_pass http://code-server:8443/;
@@ -33,7 +33,7 @@ http {
     server {
         access_log /var/log/nginx/access.log combined;
         listen       80;
-        server_name  ~^(3000|5500|5501)\.$DOMAIN$;
+        server_name  ~^(3000|5500|5501)\.$NGINX_DOMAIN$;
 
         # ^(3000|5500)\.code-server\.operator2018\.ru$
 

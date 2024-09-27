@@ -34,6 +34,8 @@ services:
         ipv4_address: 172.16.239.6
     ports:
     - "80:80"
+    environment:
+      - 'NGINX_DOMAIN=${DOMAIN}'
     # environment:
     # - NGINX_HOST=foobar.com
     # - NGINX_PORT=80
