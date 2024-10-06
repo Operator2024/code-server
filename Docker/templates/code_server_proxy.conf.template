@@ -24,6 +24,24 @@ http {
         listen       80;
         server_name $NGINX_DOMAIN;
 
+        location /.well-known/acme-challenge/ {
+            root /var/www/certbot;
+        }
+
+        location / {
+            return 301 https://$NGINX_DOMAIN$request_uri;
+        }
+    }
+
+    server {
+        access_log /var/log/nginx/access.log combined;
+        listen       443 ssl;
+        http2        on;
+        server_name $NGINX_DOMAIN;
+
+        ssl_certificate /etc/nginx/ssl/live/$NGINX_DOMAIN/fullchain.pem;
+        ssl_certificate_key /etc/nginx/ssl/live/$NGINX_DOMAIN/privkey.pem;
+
         location = / {
             return 444;
         }
@@ -56,9 +74,9 @@ http {
             proxy_cache_valid    404         10m;
             proxy_cache_bypass   $bypass;
 
-            expires              10m;
+            # expires              10m;
 
-            # Debug 
+            # Debug
             #add_header X-debug-message-2 "$sent_http_location, $http_location , $upstream_http_location";
             #add_header X-debug-message "$http_upgrade $connection_upgrade $host $remote_addr $proxy_add_x_forwarded_for $1 $uri t2 $args, cookie: $cookie_code_server_session, $bypass $sent_http_location" always;
         }
@@ -70,8 +88,13 @@ http {
 
     server {
         access_log /var/log/nginx/access.log combined;
-        listen       80;
+        listen       443 ssl;
+        http2        on;
+
         server_name  ~^(3000|5500|5501)\.$NGINX_DOMAIN$;
+
+        ssl_certificate /etc/nginx/ssl/live/$NGINX_DOMAIN/fullchain.pem;
+        ssl_certificate_key /etc/nginx/ssl/live/$NGINX_DOMAIN/privkey.pem;
 
         location / {
             resolver 127.0.0.11 valid=10s;
