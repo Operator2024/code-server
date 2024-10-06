@@ -2,43 +2,52 @@
 version: "3.0"
 services:
   code-server:
-    image: lscr.io/linuxserver/code-server:latest
+    build:
+      dockerfile: ./Dockerfile
+      context: .
+    image: code-server-npm:${CODE_TAG}
     container_name: code-server
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=Etc/UTC
-      #- PASSWORD=password #optional
+      - PASSWORD=password #optional
       # change password via hasher.py or https://coder.com/docs/code-server/FAQ#can-i-store-my-password-hashed
       #- HASHED_PASSWORD=
       #- SUDO_PASSWORD= #optional
       #- SUDO_PASSWORD_HASH= #optional
-      #- PROXY_DOMAIN=code-server.operator2018.ru #optional
+      #- PROXY_DOMAIN=${DOMAIN} #optional
       - DEFAULT_WORKSPACE=/config/workspace #optional
     volumes:
       - root_config:/config
     networks:
       local-network:
         ipv4_address: 172.16.239.5
-    ports:
-      - ${PORT}:8443/tcp
-      - 3000:3000/tcp
     restart: unless-stopped
   web:
-    build:
-      args:
-        version: ${IMAGE_VERSION}
-        context: .
-    image: custom-nginx:${IMAGE_VERSION}
-    container_name: custom-nginx
+    image: nginx:1.26.1
+    volumes:
+      - './nginx.conf:/etc/nginx/nginx.conf'
+      - './templates:/etc/nginx/templates/'
+      - './certbot/www/:/var/www/certbot/:ro'
+      - './certbot/conf/:/etc/nginx/ssl/:ro'
     networks:
       local-network:
         ipv4_address: 172.16.239.6
     ports:
-    - "8080:80"
-    # environment:
-    # - NGINX_HOST=foobar.com
-    # - NGINX_PORT=80
+    - "${HTTP_WEB_PORT}:${HTTP_WEB_PORT}"
+    - "${HTTPS_WEB_PORT}:${HTTPS_WEB_PORT}"
+    environment:
+      - 'NGINX_DOMAIN=${DOMAIN}'
+      - 'VS_PORT=${APP_PORT}'
+      - 'NGINX_LOCATION=${LOCATION}'
+    restart: unless-stopped
+  # Enable for sign cert
+  # certbot:
+  #   image: certbot/certbot:latest
+  #   volumes:
+  #     - ./certbot/www/:/var/www/certbot/:rw
+  #     - ./certbot/conf/:/etc/letsencrypt/:rw
 
 networks:
   local-network:
@@ -46,7 +55,6 @@ networks:
       driver: default
       config:
         - subnet: "172.16.239.0/24"
-          # - subnet: "2001:3984:3989::/64"
           gateway: "172.16.239.1"
 
 volumes:
