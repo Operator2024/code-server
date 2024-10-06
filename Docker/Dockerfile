@@ -1,4 +1,4 @@
-FROM lscr.io/linuxserver/code-server:${CODE_TAG}
+FROM lscr.io/linuxserver/code-server:4.23.1-ls207
 
 ARG DEBIAN_FRONTEND=noninteractive
 
